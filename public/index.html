@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Page Pulse — URL Audit Tool</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --card: #171a21;
+    --border: #262b35;
+    --text: #e7e9ee;
+    --muted: #9aa1af;
+    --accent: #5b8cff;
+    --good: #3ecf8e;
+    --bad: #ff6b6b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  main { flex: 1; max-width: 720px; margin: 0 auto; padding: 48px 20px; width: 100%; }
+  h1 { font-size: 28px; margin-bottom: 4px; }
+  p.subtitle { color: var(--muted); margin-top: 0; margin-bottom: 32px; }
+  form { display: flex; gap: 8px; margin-bottom: 24px; }
+  input[type="text"] {
+    flex: 1;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-size: 15px;
+  }
+  input[type="text"]:focus { outline: 2px solid var(--accent); }
+  button {
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 15px;
+  }
+  button:disabled { opacity: 0.6; cursor: not-allowed; }
+  #status { margin-bottom: 16px; color: var(--muted); min-height: 20px; }
+  #status.error { color: var(--bad); }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .card .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+  .card .value { font-size: 18px; font-weight: 600; word-break: break-word; }
+  .full { grid-column: 1 / -1; }
+  footer {
+    text-align: center;
+    padding: 20px;
+    color: var(--muted);
+    font-size: 13px;
+    border-top: 1px solid var(--border);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Page Pulse</h1>
+  <p class="subtitle">Enter a URL to get an instant audit report.</p>
+
+  <form id="audit-form">
+    <input type="text" id="url-input" placeholder="https://example.com" autocomplete="off" required />
+    <button type="submit" id="submit-btn">Audit</button>
+  </form>
+
+  <div id="status"></div>
+  <div id="report" class="grid" style="display:none;"></div>
+</main>
+
+<footer>
+  Built for Digital Heroes Training Task —
+  <a href="https://digitalheroesco.com" target="_blank" rel="noopener">digitalheroesco.com</a>
+</footer>
+
+<script>
+  const form = document.getElementById('audit-form');
+  const input = document.getElementById('url-input');
+  const statusEl = document.getElementById('status');
+  const reportEl = document.getElementById('report');
+  const submitBtn = document.getElementById('submit-btn');
+
+  function renderReport(data) {
+    const fields = [
+      { label: 'HTTP Status', value: data.httpStatus },
+      { label: 'Response Time', value: `${data.responseTimeMs} ms` },
+      { label: 'Page Title', value: data.title || '—', full: true },
+      { label: 'Meta Description', value: data.metaDescription || '—', full: true },
+      { label: 'H1 Count', value: data.h1Count },
+      { label: 'Images Missing Alt', value: `${data.imagesMissingAlt} / ${data.imageCount}` },
+      { label: 'Approx. Word Count', value: data.wordCount },
+    ];
+
+    reportEl.innerHTML = fields.map(f => `
+      <div class="card ${f.full ? 'full' : ''}">
+        <div class="label">${f.label}</div>
+        <div class="value">${f.value}</div>
+      </div>
+    `).join('');
+    reportEl.style.display = 'grid';
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const url = input.value.trim();
+    reportEl.style.display = 'none';
+    statusEl.className = '';
+    statusEl.textContent = 'Auditing…';
+    submitBtn.disabled = true;
+
+    try {
+      const res = await fetch('/api/audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        statusEl.className = 'error';
+        statusEl.textContent = data.error || 'Something went wrong.';
+        return;
+      }
+
+      statusEl.textContent = '';
+      renderReport(data);
+    } catch (err) {
+      statusEl.className = 'error';
+      statusEl.textContent = 'Network error — could not reach the server.';
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
