@@ -7,8 +7,8 @@ Built for the Digital Heroes SDE internship task kit (Role 03, Task A & B).
 
 ## Live demo
 
-- Live app: **[add your deployed URL here]**
-- Repo: **[add your GitHub URL here]**
+- Live app: **https://page-pulse-a7yc.onrender.com**
+- Repo: **https://github.com/lokinisneha7-byte/page-pulse**
 
 ## Setup
 
@@ -107,4 +107,4 @@ expand the parser to flag missing `<title>`/meta description as its own
 
 ## AI use disclosure
 
-*(Fill this in honestly before submitting — see note below.)*
+I used Claude (Anthropic's AI assistant) throughout this task. I asked it to scaffold the backend endpoint, the frontend page, the test suite, and the initial README based on the Task A and Task B brief. I reviewed the generated code, ran it locally to confirm the tests passed and the tool worked end-to-end, and deployed it to Render myself. During deployment I hit a real error (Render's start command pointed to a file that didn't exist), diagnosed the log output, and fixed the Start Command setting myself. I also tested the live version with real URLs to confirm it worked outside my own machine.
